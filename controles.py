@@ -38,11 +38,13 @@ def validar_caract_digitos(direccion):
     cant_todos_digitos = 0
 
     for car in direccion:
-        if not is_valid_direccion:
-            return False
-
         if not termino_palabra and (car == " " or car == "."):
             is_valid_direccion = todos_digitos or todos_alfa
+
+            # Si la direccion no es valida en esta iteracion
+            # Termino el ciclo y retorno False
+            if not is_valid_direccion:
+                return False
             
             if todos_digitos:
                 cant_todos_digitos += 1
