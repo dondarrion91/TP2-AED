@@ -1,9 +1,27 @@
 __author__ = "TP2-G023"
 
-cp = input("Ingrese el código postal del lugar de destino: ")
-direccion = input("Dirección del lugar de destino: ")
-tipo = int(input("Tipo de envío (id entre 0 y 6 - ver tabla 2 en el enunciado): "))
-pago = int(input("Forma de pago (1: efectivo - 2: tarjeta): "))
+envios = open("envios.txt", "rt")
+primera_linea = True
+
+for envio_cad in envios:
+    if not primera_linea:
+        cp = ""
+        direccion = envio_cad[9:29]
+        tipo = envio_cad[29]
+        pago = envio_cad[30]
+
+        for car in envio_cad[0:9]:
+            if car != " ":
+                cp += car
+
+        print("\nCodigo postal", cp)
+        print("Direccion:", direccion)
+        print("Tipo de envio:", tipo)
+        print("Forma de pago:", pago)
+
+    primera_linea = False
+
+"""
 inicial = 0
 
 ISO_3166_2_AR_DIGITS = "ABCDEFGHJKLMNPQRSTUVWXYZ"
@@ -117,3 +135,4 @@ print("País de destino del envío:", destino)
 print("Provincia destino:", provincia)
 print("Importe inicial a pagar:", inicial)
 print("Importe final a pagar:", final)
+"""
