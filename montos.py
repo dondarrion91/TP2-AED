@@ -117,7 +117,7 @@ def set_monto_inicial(cp, tipo):
     isBrasil = cp_is_brasil(cp)
     isChile = cp_is_chile(cp)
     isParaguay = cp_is_paraguay(cp)
-    isUruguay = cp_is_paraguay(cp)
+    isUruguay = cp_is_uruguay(cp)
 
     if isArgentina:
         return inicial
