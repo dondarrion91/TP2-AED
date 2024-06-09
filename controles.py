@@ -76,3 +76,14 @@ def validar_direccion(direccion):
     is_caract_digitos_validos = validar_caract_digitos(direccion)
 
     return is_caract_digitos_validos
+
+def get_tipo_mayor(ccs, ccc, cce):
+    if ccs > ccc:
+        if ccs > cce:
+            return "Carta Simple"
+        else:
+            return "Carta Expresa"
+    elif ccc > cce:
+        return "Carta Certificada"
+    else:
+        return "Carta Expresa"
