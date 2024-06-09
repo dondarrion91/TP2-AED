@@ -27,8 +27,16 @@ for envio_car in envios:
     if primera_linea and envio_car != "\n":
         timestamp += envio_car
     elif envio_car == "\n":
-        control = controles.detectar_tipo_control(timestamp)
+        if not control:
+            control = controles.detectar_tipo_control(timestamp)
+
         primera_linea = False
+
+        # Reset variables
+        cp = ""
+        direccion = ""
+        tipo = ""
+        pago = ""
         posicion = 0
     elif not primera_linea and posicion <= 9:
         cp += envio_car
@@ -44,12 +52,6 @@ for envio_car in envios:
             cedvalid += 1
         else:
             cedinvalid += 1
-
-        # Reset variables
-        cp = ""
-        direccion = ""
-        tipo = ""
-        pago = ""
 
     cantidad_caracteres += 1
     posicion += 1
