@@ -50,7 +50,6 @@ for envio_car in envios:
         direccion = ""
         tipo = ""
         pago = ""
-        posicion = 0
 
     cantidad_caracteres += 1
     posicion += 1
