@@ -3,29 +3,19 @@ __author__ = "TP2-G023"
 import controles
 import envio
 
-def get_envios(file_name, action):
-    archivo = open(file_name, action)
-
-    envios_string = archivo.read()
-
-    archivo.close()
-
-    return envios_string
-
-envios = get_envios("envios.txt", "rt")
-
+# Flag para detectar si es la primer linea del archivo de texto.
+primera_linea = True
 direccion_es_valida = True
 control = None
 cedvalid = 0
 cedinvalid = 0
-
-# Flag para detectar si es la primer linea del archivo de texto.
-primera_linea = True
 posicion = 0
 cantidad_caracteres = 0
 cp = ""
 direccion = ""
 timestamp = ""
+
+envios = envio.get_envios("envios.txt", "rt")
 
 # Cuerpo principal del script
 for envio_car in envios:

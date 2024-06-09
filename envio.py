@@ -1,5 +1,15 @@
 import controles
 
+def get_envios(file_name, action):
+    archivo = open(file_name, action)
+
+    envios_string = archivo.read()
+
+    archivo.close()
+
+    return envios_string
+
+
 def handle_envio(cp, direccion, control):
     # Caso Soft Control
     direccion_es_valida = True
