@@ -11,8 +11,11 @@ cedvalid = 0
 cedinvalid = 0
 posicion = 0
 cantidad_caracteres = 0
+
 cp = ""
 direccion = ""
+tipo = ""
+pago = ""
 timestamp = ""
 
 envios = envio.get_envios("envios.txt", "rt")
@@ -31,7 +34,10 @@ for envio_car in envios:
         cp += envio_car
     elif not primera_linea and posicion > 9 and posicion < 30:
         direccion += envio_car
+    elif not primera_linea and posicion == 30:
+        tipo = envio_car
     elif posicion == 31 or has_ended:
+        pago = envio_car
         direccion_es_valida = envio.handle_envio(cp, direccion, control)
         
         if direccion_es_valida:
@@ -42,6 +48,8 @@ for envio_car in envios:
         # Reset variables
         cp = ""
         direccion = ""
+        tipo = ""
+        pago = ""
         posicion = 0
 
     cantidad_caracteres += 1
