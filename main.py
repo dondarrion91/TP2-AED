@@ -112,8 +112,6 @@ for envio_car in envios:
                     cant_envios_prov_bsas += 1
                     imp_acu_bsas += final
 
-            cp_sin_espacios = ""
-
             imp_acu_total += final
         else:
             # Punto 3
