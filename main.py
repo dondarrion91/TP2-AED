@@ -83,21 +83,13 @@ for envio_car in envios:
             primer_cp = cp_sin_espacios
             cant_primer_cp += 1
 
+        # Punto 4
+        inicial = montos.set_monto_inicial(cp_sin_espacios, tipo)
+        final = montos.set_monto_final(inicial, pago)
+
         if direccion_es_valida:
             # Punto 2
             cedvalid += 1
-
-            # Punto 4
-            inicial = montos.set_monto_inicial(cp_sin_espacios, tipo)
-            final = montos.set_monto_final(inicial, pago)
-            
-            # Punto 11 y 12
-            es_brasil = montos.cp_is_brasil(cp_sin_espacios)
-
-            if es_brasil:
-                if menimp is None or (final < menimp):
-                    menimp = final
-                    mencp = cp_sin_espacios
 
             # Punto 8
             if tipo in (0, 1, 2):
@@ -126,6 +118,14 @@ for envio_car in envios:
         else:
             # Punto 3
             cedinvalid += 1
+        
+        # Punto 11 y 12
+        es_brasil = montos.cp_is_brasil(cp_sin_espacios)
+
+        if es_brasil:
+            if menimp is None or (final < menimp):
+                menimp = final
+                mencp = cp_sin_espacios
 
         cant_envios_totales += 1
 
