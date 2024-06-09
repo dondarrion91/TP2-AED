@@ -1,55 +1,61 @@
 __author__ = "TP2-G023"
 
-import montos
 import controles
+import envio
 
-envios = open("envios.txt", "rt")
+def get_envios(file_name, action):
+    archivo = open(file_name, action)
 
-# Flag para detectar si es la primer linea del archivo de texto.
-primera_linea = True
+    envios_string = archivo.read()
+
+    archivo.close()
+
+    return envios_string
+
+envios = get_envios("envios.txt", "rt")
+
 direccion_es_valida = True
 control = None
 cedvalid = 0
 cedinvalid = 0
 
+# Flag para detectar si es la primer linea del archivo de texto.
+primera_linea = True
+posicion = 0
+cantidad_caracteres = 0
+cp = ""
+direccion = ""
+timestamp = ""
+
 # Cuerpo principal del script
-for envio_cad in envios:
-    if not primera_linea:
-        cp = ""
-        direccion = envio_cad[9:29]
-        tipo = int(envio_cad[29])
-        pago = int(envio_cad[30])
+for envio_car in envios:
+    has_ended = cantidad_caracteres == (len(envios) - 1)
 
-        # Elimino los espacios del código postal.
-        for car in envio_cad[0:9]:
-            if car != " ":
-                cp += car
-
-        if control == "Hard Control":
-            direccion_es_valida = controles.validar_direccion(direccion)
+    if primera_linea and envio_car != "\n":
+        timestamp += envio_car
+    elif envio_car == "\n":
+        control = controles.detectar_tipo_control(timestamp)
+        primera_linea = False
+        posicion = 0
+    elif not primera_linea and posicion <= 9:
+        cp += envio_car
+    elif not primera_linea and posicion > 9 and posicion < 30:
+        direccion += envio_car
+    elif posicion == 31 or has_ended:
+        direccion_es_valida = envio.handle_envio(cp, direccion, control)
         
         if direccion_es_valida:
             cedvalid += 1
         else:
             cedinvalid += 1
 
-        # destino = montos.setear_destino(cp)
-        # provincia = montos.set_provincia(cp)
-        # inicial = montos.set_monto_inicial(cp, tipo)
-        # final = montos.set_monto_final(inicial, pago)
+        # Reset variables
+        cp = ""
+        direccion = ""
+        posicion = 0
 
-        # print("\nCodigo postal", cp)
-        # print("Direccion:", direccion)
-        # print("Tipo de envio:", tipo)
-        # print("Forma de pago:", pago)
-        # print("Destino:", destino)
-        # print("Provincia:", provincia)
-        # print("Monto incial:", inicial)
-        # print("Monto final:", final)
-    else:
-        control = controles.detectar_tipo_control(envio_cad)
-
-    primera_linea = False
+    cantidad_caracteres += 1
+    posicion += 1
 
 print(' (r1) - Tipo de control de direcciones:', control)
 print(' (r2) - Cantidad de envios con direccion valida:', cedvalid)
