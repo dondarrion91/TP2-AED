@@ -39,50 +39,6 @@ MONTOS_ENVIOS = (
     (6, 17900),
 )
 
-# Flag para detectar si es la primer linea del archivo de texto.
-primera_linea = True
-direccion_es_valida = True
-
-# Outputs
-control = None
-cedvalid = 0
-cedinvalid = 0
-imp_acu_total = 0
-ccs = 0
-ccc = 0
-cce = 0
-primer_cp = None
-cant_primer_cp = 0
-menimp = None
-mencp = None
-porc = None
-prom = None
-
-# Variables auxiliares para los outputs
-tiene_h = False
-tiene_hc = False
-imp_acu_bsas = 0
-cant_envios_totales = 0
-cant_envios_prov_bsas = 0
-cant_exterior = 0
-posicion = 0
-cantidad_caracteres = 0
-
-# Variables de calculo de montos
-cp = ""
-tipo = ""
-pago = ""
-timestamp = ""
-
-# Variables para validar direcciones
-termino_palabra = False
-anterior = None
-todos_digitos = True
-todos_alfa = True
-all_alfa_digit = True
-cant_uppers_palabra = 0
-cant_todos_digitos = 0
-
 def get_envios(file_name, action):
     archivo = open(file_name, action)
 
@@ -227,7 +183,7 @@ def get_promedio_bsas(cant_envios_prov_bsas, imp_acu_bsas):
 
     return imp_acu_bsas // cant_envios_prov_bsas
 
-def validar_direccion(all_alfa_digit, cant_uppers_palabra, cant_todos_digitos):
+def validar_direccion(all_alfa_digit, cant_uppers_palabra, cant_todos_digitos, control):
     if control == "Hard Control":
         return all_alfa_digit and (cant_uppers_palabra == 0) and (cant_todos_digitos >= 1)
 
@@ -246,7 +202,7 @@ def contar_tipo_cartas(tipo, ccs, ccc, cce):
     
     return ccs, ccc, cce
 
-def contar_envios_exterior_y_bsas(cp, cant_exterior, cant_envios_prov_bsas, imp_acu_bsas):
+def contar_envios_exterior_y_bsas(cp, cant_exterior, cant_envios_prov_bsas, imp_acu_bsas, final):
     is_argentina = cp_is_argentina(cp)
 
     if not is_argentina:
@@ -270,144 +226,189 @@ def detectar_hc(envio_car, tiene_h, tiene_hc):
 
     return tiene_h, tiene_hc
 
-# Cuerpo principal del script
-for envio_car in envios:
-    has_ended = cantidad_caracteres == (len(envios) - 1)
+def start():
+    # Flag para detectar si es la primer linea del archivo de texto.
+    primera_linea = True
+    direccion_es_valida = True
 
-    if primera_linea and envio_car != "\n":
-        # Punto 1
-        tiene_h, tiene_hc = detectar_hc(envio_car, tiene_h, tiene_hc)
-    elif envio_car == "\n":
-        if not control:
-            control = detectar_tipo_control(tiene_hc)
+    # Outputs
+    control = None
+    cedvalid = 0
+    cedinvalid = 0
+    imp_acu_total = 0
+    ccs = 0
+    ccc = 0
+    cce = 0
+    primer_cp = None
+    cant_primer_cp = 0
+    menimp = None
+    mencp = None
+    porc = None
+    prom = None
 
-        # Detecto si ya no estoy recorriendo la primera linea.
-        primera_linea = False
+    # Variables auxiliares para los outputs
+    tiene_h = False
+    tiene_hc = False
+    imp_acu_bsas = 0
+    cant_envios_totales = 0
+    cant_envios_prov_bsas = 0
+    cant_exterior = 0
+    posicion = 0
+    cantidad_caracteres = 0
 
-        # Reset variables
-        cp = ""
-        tipo = ""
-        pago = ""
-        posicion = 0
-    elif not primera_linea and posicion <= 9:
-        cp += envio_car
-    elif not primera_linea and posicion > 9 and posicion < 30:
-        if control == "Hard Control":
-            if envio_car == " " or envio_car == ".":
-                all_alfa_digit = todos_digitos or todos_alfa
-                # Si la direccion no es valida en esta iteracion
-                # Termino el ciclo y retorno False
-                if not all_alfa_digit:
-                    direccion_es_valida = False
+    # Variables de calculo de montos
+    cp = ""
+    tipo = ""
+    pago = ""
+
+    # Variables para validar direcciones
+    anterior = None
+    todos_digitos = True
+    todos_alfa = True
+    all_alfa_digit = True
+    cant_uppers_palabra = 0
+    cant_todos_digitos = 0
+
+    for envio_car in envios:
+        has_ended = cantidad_caracteres == (len(envios) - 1)
+
+        if primera_linea and envio_car != "\n":
+            # Punto 1
+            tiene_h, tiene_hc = detectar_hc(envio_car, tiene_h, tiene_hc)
+        elif envio_car == "\n":
+            if not control:
+                control = detectar_tipo_control(tiene_hc)
+
+            # Detecto si ya no estoy recorriendo la primera linea.
+            primera_linea = False
+
+            # Reset variables
+            cp = ""
+            tipo = ""
+            pago = ""
+            posicion = 0
+        elif not primera_linea and posicion <= 9:
+            cp += envio_car
+        elif not primera_linea and posicion > 9 and posicion < 30:
+            if control == "Hard Control":
+                if envio_car == " " or envio_car == ".":
+                    all_alfa_digit = todos_digitos or todos_alfa
+                    # Si la direccion no es valida en esta iteracion
+                    # Termino el ciclo y retorno False
+                    if not all_alfa_digit:
+                        direccion_es_valida = False
+                    else:
+                        if todos_digitos:
+                            cant_todos_digitos += 1
+
+                        todos_digitos = True
+                        todos_alfa = True
                 else:
-                    if todos_digitos:
-                        cant_todos_digitos += 1
+                    if todos_digitos and not envio_car.isdigit():
+                        todos_digitos = False
 
-                    todos_digitos = True
-                    todos_alfa = True
+                    if todos_alfa and not envio_car.isalpha():
+                        todos_alfa = False
+
+                    if anterior is not None:
+                        ant_car_is_alpha = anterior.isalpha() and envio_car.isalpha()
+                        dos_uppers_seguidos = anterior.upper() == anterior and envio_car.upper() == envio_car
+
+                        if ant_car_is_alpha and dos_uppers_seguidos:
+                            cant_uppers_palabra += 1
+                anterior = envio_car
+        elif not primera_linea and posicion == 30:
+            tipo = int(envio_car)
+        elif posicion == 31 or has_ended:
+            # Termino de recorrer la linea del archivo.
+            direccion_es_valida = validar_direccion(all_alfa_digit, cant_uppers_palabra, cant_todos_digitos, control)
+
+            # Elimino los espacios del código postal.
+            cp_sin_espacios = cp.strip()
+            pago = int(envio_car)
+
+            # Punto 10
+            if (primer_cp is not None) and (cp_sin_espacios == primer_cp):
+                cant_primer_cp += 1
+
+            # Punto 9
+            if primer_cp is None:
+                primer_cp = cp_sin_espacios
+                cant_primer_cp += 1
+
+            # Punto 4
+            inicial = set_monto_inicial(cp_sin_espacios, tipo)
+            final = set_monto_final(inicial, pago)
+
+            if direccion_es_valida:
+                # Punto 2
+                cedvalid += 1
+
+                # Punto 8
+                ccs, ccc, cce = contar_tipo_cartas(tipo, ccs, ccc, cce)
+
+                # Punto 13 y 14
+                cant_exterior, cant_envios_prov_bsas, imp_acu_bsas = contar_envios_exterior_y_bsas(
+                    cp_sin_espacios,
+                    cant_exterior,
+                    cant_envios_prov_bsas,
+                    imp_acu_bsas,
+                    final
+                )
+
+                imp_acu_total += final
             else:
-                if todos_digitos and not envio_car.isdigit():
-                    todos_digitos = False
+                # Punto 3
+                cedinvalid += 1
 
-                if todos_alfa and not envio_car.isalpha():
-                    todos_alfa = False
+            # Punto 11 y 12
+            es_brasil = cp_is_brasil(cp_sin_espacios)
 
-                if anterior is not None:
-                    ant_car_is_alpha = anterior.isalpha() and envio_car.isalpha()
-                    dos_uppers_seguidos = anterior.upper() == anterior and envio_car.upper() == envio_car
+            if es_brasil:
+                if menimp is None or (final < menimp):
+                    menimp = final
+                    mencp = cp_sin_espacios
 
-                    if ant_car_is_alpha and dos_uppers_seguidos:
-                        cant_uppers_palabra += 1
-            anterior = envio_car
-    elif not primera_linea and posicion == 30:
-        tipo = int(envio_car)
-    elif posicion == 31 or has_ended:
-        # Termino de recorrer la linea del archivo.
-        direccion_es_valida = validar_direccion(all_alfa_digit, cant_uppers_palabra, cant_todos_digitos)
+            # Contador necesario para calcular porcentaje de punto 13
+            cant_envios_totales += 1
 
-        # Elimino los espacios del código postal.
-        cp_sin_espacios = cp.strip()
-        pago = int(envio_car)
+            # Reseteo codigo postal
+            cp_sin_espacios = ""
 
-        # Punto 10
-        if (primer_cp is not None) and (cp_sin_espacios == primer_cp):
-            cant_primer_cp += 1
+            # Reset variables para la validacion de direccion
+            todos_digitos = True
+            todos_alfa = True
+            all_alfa_digit = True
+            cant_uppers_palabra = 0
+            cant_todos_digitos = 0
 
-        # Punto 9
-        if primer_cp is None:
-            primer_cp = cp_sin_espacios
-            cant_primer_cp += 1
+        cantidad_caracteres += 1
+        posicion += 1
 
-        # Punto 4
-        inicial = set_monto_inicial(cp_sin_espacios, tipo)
-        final = set_monto_final(inicial, pago)
+    # punto 8
+    tipo_mayor = get_tipo_mayor(ccs, ccc, cce)
 
-        if direccion_es_valida:
-            # Punto 2
-            cedvalid += 1
+    # Punto 13
+    porc = get_porcentaje_exterior(cant_envios_totales, cant_exterior)
+    
+    # Punto 14
+    prom = get_promedio_bsas(cant_envios_prov_bsas, imp_acu_bsas)
+    
+    print(' (r1) - Tipo de control de direcciones:', control)
+    print(' (r2) - Cantidad de envios con direccion valida:', cedvalid)
+    print(' (r3) - Cantidad de envios con direccion no valida:', cedinvalid)
+    print(' (r4) - Total acumulado de importes finales:', imp_acu_total)
+    print(' (r5) - Cantidad de cartas simples:', ccs)
+    print(' (r6) - Cantidad de cartas certificadas:', ccc)
+    print(' (r7) - Cantidad de cartas expresas:', cce)
+    print(' (r8) - Tipo de carta con mayor cantidad de envios:', tipo_mayor)
+    print(' (r9) - Codigo postal del primer envio del archivo:', primer_cp)
+    print('(r10) - Cantidad de veces que entro ese primero:', cant_primer_cp)
+    print('(r11) - Importe menor pagado por envios a Brasil:', menimp)
+    print('(r12) - Codigo postal del envio a Brasil con importe menor:', mencp)
+    print('(r13) - Porcentaje de envios al exterior sobre el total:', porc)
+    print('(r14) - Importe final promedio de los envios Buenos Aires:', prom)
 
-            # Punto 8
-            ccs, ccc, cce = contar_tipo_cartas(tipo, ccs, ccc, cce)
-            
-            # Punto 13 y 14
-            cant_exterior, cant_envios_prov_bsas, imp_acu_bsas = contar_envios_exterior_y_bsas(
-                cp_sin_espacios,
-                cant_exterior,
-                cant_envios_prov_bsas,
-                imp_acu_bsas
-            )
-
-            imp_acu_total += final
-        else:
-            # Punto 3
-            cedinvalid += 1
-
-        # Punto 11 y 12
-        es_brasil = cp_is_brasil(cp_sin_espacios)
-
-        if es_brasil:
-            if menimp is None or (final < menimp):
-                menimp = final
-                mencp = cp_sin_espacios
-
-        # Contador necesario para calcular porcentaje de punto 13
-        cant_envios_totales += 1
-
-        # Reseteo codigo postal
-        cp_sin_espacios = ""
-
-        # Reset variables para la validacion de direccion
-        termino_palabra = False
-        todos_digitos = True
-        todos_alfa = True
-        all_alfa_digit = True
-        cant_uppers_palabra = 0
-        cant_todos_digitos = 0
-
-    cantidad_caracteres += 1
-    posicion += 1
-
-# punto 8
-tipo_mayor = get_tipo_mayor(ccs, ccc, cce)
-
-# Punto 13
-porc = get_porcentaje_exterior(cant_envios_totales, cant_exterior)
-
-# Punto 14
-prom = get_promedio_bsas(cant_envios_prov_bsas, imp_acu_bsas)
-
-
-print(' (r1) - Tipo de control de direcciones:', control)
-print(' (r2) - Cantidad de envios con direccion valida:', cedvalid)
-print(' (r3) - Cantidad de envios con direccion no valida:', cedinvalid)
-print(' (r4) - Total acumulado de importes finales:', imp_acu_total)
-print(' (r5) - Cantidad de cartas simples:', ccs)
-print(' (r6) - Cantidad de cartas certificadas:', ccc)
-print(' (r7) - Cantidad de cartas expresas:', cce)
-print(' (r8) - Tipo de carta con mayor cantidad de envios:', tipo_mayor)
-print(' (r9) - Codigo postal del primer envio del archivo:', primer_cp)
-print('(r10) - Cantidad de veces que entro ese primero:', cant_primer_cp)
-print('(r11) - Importe menor pagado por envios a Brasil:', menimp)
-print('(r12) - Codigo postal del envio a Brasil con importe menor:', mencp)
-print('(r13) - Porcentaje de envios al exterior sobre el total:', porc)
-print('(r14) - Importe final promedio de los envios Buenos Aires:', prom)
+# Cuerpo principal del script
+if __name__ == "__main__":
+    start()
