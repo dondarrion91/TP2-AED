@@ -1,6 +1,5 @@
 __author__ = "TP2-G023"
 
-
 ISO_3166_2_AR_DIGITS = "ABCDEFGHJKLMNPQRSTUVWXYZ"
 
 ISO_3166_2_AR_DIGITS_NAMES = (
@@ -44,7 +43,7 @@ MONTOS_ENVIOS = (
 primera_linea = True
 direccion_es_valida = True
 
-# Outputs variables
+# Outputs
 control = None
 cedvalid = 0
 cedinvalid = 0
@@ -59,6 +58,9 @@ mencp = None
 porc = None
 prom = None
 
+# Variables auxiliares para los outputs
+tiene_h = False
+tiene_hc = False
 imp_acu_bsas = 0
 cant_envios_totales = 0
 cant_envios_prov_bsas = 0
@@ -72,7 +74,7 @@ tipo = ""
 pago = ""
 timestamp = ""
 
-# Variable para validar direcciones
+# Variables para validar direcciones
 termino_palabra = False
 anterior = None
 todos_digitos = True
@@ -92,34 +94,11 @@ def get_envios(file_name, action):
 
 envios = get_envios("envios.txt", "rt")
 
-def detectar_hc(cad):
-    tiene_h = False
-    tiene_hc = False
-
-    for car in cad:
-        if car.lower() == "h" and not tiene_h:
-            tiene_h = True
-        elif car.lower() == "c" and tiene_h:
-            tiene_hc = True
-        else:
-            tiene_h = False
-
-    return tiene_hc
-
-def detectar_tipo_control(cad):
-    tiene_hc = detectar_hc(cad)
-    
+def detectar_tipo_control(tiene_hc):
     if tiene_hc:
         return "Hard Control"
 
     return "Soft Control"
-
-"""
-HC: En cada envío del archivo de entrada, se debe controlar que la dirección de
-destino tenga solo letras y dígitos, y que no haya dos mayúsculas seguidas, y que haya al menos una
-palabra compuesta sólo por dígitos. Será considerado válido el envío solo si pasa la verificación
-indicada aquí.
-"""
 
 def get_tipo_mayor(ccs, ccc, cce):
     if ccs > ccc:
@@ -281,17 +260,28 @@ def contar_envios_exterior_y_bsas(cp, cant_exterior, cant_envios_prov_bsas, imp_
     
     return cant_exterior, cant_envios_prov_bsas, imp_acu_bsas
 
+def detectar_hc(envio_car, tiene_h, tiene_hc):
+    if envio_car.lower() == "h" and not tiene_h:
+        tiene_h = True
+    elif envio_car.lower() == "c" and tiene_h:
+        tiene_hc = True
+    else:
+        tiene_h = False
+
+    return tiene_h, tiene_hc
+
 # Cuerpo principal del script
 for envio_car in envios:
     has_ended = cantidad_caracteres == (len(envios) - 1)
 
     if primera_linea and envio_car != "\n":
-        timestamp += envio_car
+        # Punto 1
+        tiene_h, tiene_hc = detectar_hc(envio_car, tiene_h, tiene_hc)
     elif envio_car == "\n":
         if not control:
-            # Punto 1
-            control = detectar_tipo_control(timestamp)
+            control = detectar_tipo_control(tiene_hc)
 
+        # Detecto si ya no estoy recorriendo la primera linea.
         primera_linea = False
 
         # Reset variables
