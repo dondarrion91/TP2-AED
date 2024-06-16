@@ -358,20 +358,14 @@ for envio_car in envios:
 
             # Punto 8
             ccs, ccc, cce = contar_tipo_cartas(tipo, ccs, ccc, cce)
-
-            # Punto 13
-            is_argentina = cp_is_argentina(cp_sin_espacios)
             
-            if not is_argentina:
-                cant_exterior += 1
-            else:
-                # Punto 14
-                provincia = set_provincia(cp_sin_espacios)
-
-                if provincia == "Provincia de Buenos Aires":
-                    cant_envios_prov_bsas += 1
-                    imp_acu_bsas += final
-
+            # Punto 13 y 14
+            cant_exterior, cant_envios_prov_bsas, imp_acu_bsas = contar_envios_exterior_y_bsas(
+                cp_sin_espacios,
+                cant_exterior,
+                cant_envios_prov_bsas,
+                imp_acu_bsas
+            )
 
             imp_acu_total += final
         else:
